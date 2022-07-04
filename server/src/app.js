@@ -10,16 +10,16 @@ app.use(express.json());
 app.use('/auth', auth);
 
 app.use((req, res, next) => {
-  return next(Boom.notFound('NotFound'));
+  return next(Boom.notFound('Not Found'));
 });
 
-app.use((err, req, res) => {
+app.use((err, req, res, next) => {
   if (err) {
     if (err.output) {
       return res.status(err.output.statusCode || 500).json(err.output.payload);
     }
-    return res.status(500).json(err);
   }
+  return res.status(500).json(err);
 });
 
 const port = 4000;
