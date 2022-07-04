@@ -1,7 +1,11 @@
 import express from 'express';
 import Boom from 'boom';
+import dotenv from 'dotenv';
 
+// Routes
 import auth from './routes/auth';
+
+dotenv.config();
 
 const app = express();
 

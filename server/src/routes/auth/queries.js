@@ -10,7 +10,7 @@ export const INSERT_USER = `
   mutation insertUser($input: users_insert_input!) {
     insert_users_one(object: $input) {
       id
-      name
+      email
     }
   }
 `;
