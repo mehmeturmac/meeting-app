@@ -1,7 +1,7 @@
 import express from 'express';
 import Boom from 'boom';
 import bcrypt from 'bcryptjs';
-import { signAccessToken } from './helpers';
+import { signAccessToken, verifyAccessToken } from './helpers';
 
 import Hasura from '../../clients/hasura';
 import { IS_EXISTS_USER, INSERT_USER, LOGIN_QUERY } from './queries';
@@ -47,7 +47,6 @@ router.post('/login', async (req, res, next) => {
   try {
     const { users } = await Hasura.request(LOGIN_QUERY, {
       email: input.email,
-      password: input.password,
     });
     if (users.length === 0) throw Boom.unauthorized('Email or password is incorrect!');
     const user = users[0];
@@ -58,6 +57,13 @@ router.post('/login', async (req, res, next) => {
   } catch (err) {
     return next(Boom.badRequest(err));
   }
+});
+
+router.post('/me', verifyAccessToken, (req, res, next) => {
+  const { aud } = req.payload;
+  return res.json({
+    user_id: aud,
+  });
 });
 
 export default router;
