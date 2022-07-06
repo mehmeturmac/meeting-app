@@ -1,5 +1,7 @@
 import express from 'express';
 import nodemailer from 'nodemailer';
+import axios from 'axios';
+import moment from 'moment';
 // import Boom from 'boom';
 
 import Hasura from '../../clients/hasura';
@@ -28,6 +30,28 @@ router.post('/meeting_created', async (req, res, next) => {
   const { name, surname } = meetings_by_pk.user;
   const participants = meetings_by_pk.participants.map((user) => user.email).toString();
 
+  const schedule_event = {
+    type: 'create_scheduled_event',
+    args: {
+      webhook: '{{ACTION_BASE_ENDPOINT}}/webhooks/meeting_reminder',
+      schedule_at: moment(meetings_by_pk.meeting_date).subtract(2, 'minutes'),
+      payload: {
+        meeting_id: meeting.id,
+      },
+    },
+  };
+
+  const add_event = await ('http://localhost:8080/v1/query',
+  {
+    method: 'post',
+    data: JSON.stringify(schedule_event),
+    headers: {
+      'x-hasura-admin-secret': process.env.HASURA_ADMIN_SECRET,
+    },
+  });
+
+  const event_data = add_event.data;
+
   const mailOptions = {
     from: process.env.GMAIL_USER,
     to: participants,
@@ -41,5 +65,7 @@ router.post('/meeting_created', async (req, res, next) => {
     return res.json({ info });
   });
 });
+
+router.post('/meeting_reminder', async (req, res, next) => {});
 
 export default router;
